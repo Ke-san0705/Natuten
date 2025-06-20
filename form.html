@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>シフト登録フォーム</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
+    input, select, button {
+      font-size: 18px;
+      margin-bottom: 10px;
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background: #eee; }
+    .delete-btn {
+      background: #ff6666;
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h2>シフト登録</h2>
+<form id="shiftForm">
+  <input type="text" id="name" placeholder="名前" required>
+  <label>仕事</label>
+  <select id="role" required>
+    <option value="">選択してください</option>
+    <option value="スイカわり">スイカわり</option>
+    <option value="のみもの">のみもの</option>
+    <option value="スーパーボール">スーパーボール</option>
+    <option value="しゃてき">しゃてき</option>
+    <option value="わなげ">わなげ</option>
+    <option value="ポップコーン">ポップコーン</option>
+    <option value="わたがし">わたがし</option>
+  </select>
+  <label>時間</label><br>
+  <input type="time" id="start" required> ～ <input type="time" id="end" required><br>
+  <label>カードの色</label>
+  <select id="color" required>
+    <option value="">色を選択してください</option>
+    <option value="#ff9999">🔴 あか</option>
+    <option value="#99ccff">🔵 あお</option>
+    <option value="#ffff99">🟡 きいろ</option>
+    <option value="#99ff99">🟢 みどり</option>
+  </select>
+  <label>受付番号</label>
+  <input type="text" id="number" placeholder="半角数字" required>
+  <button type="submit">✅ 登録</button>
+</form>
+
+<script>
+  const form = document.getElementById('shiftForm');
+  const scriptURL = "https://script.google.com/macros/s/AKfycbwkOLGvVfEL1cFMCJ6XjoUJ5wfikjj-HSTd5bS43sSKc7qiGbsz8_DZ0D-cVv8xZs7o/exec";
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const newEntry = {
+      name: form.name.value,
+      role: form.role.value,
+      start: form.start.value,
+      end: form.end.value,
+      color: form.color.value,
+      number: form.number.value
+    };
+    fetch(scriptURL, {
+      method: 'POST',
+      body: JSON.stringify(newEntry),
+      headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => {
+      alert("✅ 登録が完了しました！");
+      form.reset();
+    })
+    .catch(error => {
+      alert("❌ エラーが発生しました: " + error);
+    });
+  });
+</script>
+
+</body>
+</html>

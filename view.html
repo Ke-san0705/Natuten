@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>シフト一覧</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: sans-serif; padding: 20px; position: relative; }
+
+    #timeDisplay {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 48px;  /*時計のサイズ*/
+      font-weight: bold;
+      color: #111; /*時計の色*/
+    }
+
+    .card {
+      border: 1px solid #ccc;
+      padding: 8px;
+      margin: 10px;
+      border-radius: 8px;
+      width: 250px;
+    }
+
+    .time-box {
+      font-weight: bold;
+      padding: 5px;
+      border-radius: 4px;
+      color: #000;
+    }
+
+    .highlight {
+      border: 3px solid #4CAF50;
+      background-color: #e0ffe0;
+    }
+
+    #cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="timeDisplay">--:--:--</div>
+
+<h1>📋 現在のシフト</h1>
+<div id="cards"></div>
+
+<script>
+  function getColor(start) {
+    if (start >= "16:00" && start < "16:20") return "#ffcccc";
+    if (start >= "16:20" && start < "16:30") return "#e5ccff";
+    if (start >= "16:30" && start < "16:40") return "#ffff99";
+    return "#dddddd";
+  }
+
+  function isNowInTimeRange(start, end) {
+    const now = new Date();
+    const current = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+    return current >= start && current < end;
+  }
+
+  function renderCards() {
+    const data = JSON.parse(localStorage.getItem('shiftData') || '[]');
+    const container = document.getElementById('cards');
+    container.innerHTML = '';
+
+    data.forEach((entry) => {
+      const color = getColor(entry.start);
+      const isNow = isNowInTimeRange(entry.start, entry.end);
+
+      const card = document.createElement('div');
+      card.className = 'card' + (isNow ? ' highlight' : '');
+
+      card.innerHTML = `
+        <p>👤 ${entry.name}</p>
+        <p>🛠 ${entry.role}</p>
+        <div class="time-box" style="background-color:${color}">
+          🕒 ${entry.start} ～ ${entry.end}
+        </div>
+      `;
+
+      container.appendChild(card);
+    });
+  }
+
+  function updateClock() {
+    const now = new Date();
+    const hh = now.getHours().toString().padStart(2, '0');
+    const mm = now.getMinutes().toString().padStart(2, '0');
+    const ss = now.getSeconds().toString().padStart(2, '0');
+    document.getElementById('timeDisplay').textContent = `${hh}:${mm}:${ss}`;
+  }
+
+  renderCards();
+  updateClock();
+  setInterval(() => {
+    updateClock();
+    renderCards(); // 1秒ごとに再描画
+  }, 1000);
+</script>
+
+</body>
+</html>
