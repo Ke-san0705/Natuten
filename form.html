@@ -63,7 +63,7 @@
 <script>
   const form = document.getElementById('shiftForm');
   // ★★★ このURLを、次のステップで作成する「新しいデプロイURL」に書き換えてください！ ★★★
-  const scriptURL = "https://script.google.com/macros/s/AKfycbx_6o0KOHASe3wYm3S_lVkI7rhI2fcNVG_wSjooyovlTcg8oAE0cFRECIgnBu1fmQ9k/exec"; 
+  const scriptURL = "https://script.google.com/macros/s/AKfycbxS2HZEzY_GwE5JjZlmaRsRtDacIl6lmRAj9uChfAhcIxElUR_4J5UnyJuS6VWNF_Kq/exec"; 
 
   const statusDiv = document.getElementById('status');
 
@@ -74,7 +74,7 @@
     submitButton.textContent = '登録中...';
     statusDiv.style.display = 'none';
 
-    const newEntry = {
+    const entryData = {
       name: form.name.value,
       role: form.role.value,
       start: form.start.value,
@@ -83,17 +83,16 @@
       number: form.number.value
     };
 
+    // ★★★★★ これがハイブリッド送信の心臓部です ★★★★★
+    const formData = new FormData();
+    // 'jsonData'という名前で、JSON文字列をFormDataの中に入れる
+    formData.append('jsonData', JSON.stringify(entryData));
+
     fetch(scriptURL, {
       method: 'POST',
-      body: JSON.stringify(newEntry),
-      headers: { 'Content-Type': 'application/json' }
+      body: formData // Content-Typeヘッダーは付けない
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`サーバーからの応答が不正です: ${response.status}`);
-        }
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
       if (data.result === 'success') {
         statusDiv.className = 'success';
