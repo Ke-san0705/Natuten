@@ -18,16 +18,23 @@
       color: white;
       border: none;
       border-radius: 4px;
-    }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-    th { background: #eee; }
-    .delete-btn {
-      background: #ff6666;
-      color: white;
-      border: none;
-      padding: 4px 8px;
       cursor: pointer;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    .time-inputs {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .time-inputs input {
+        width: calc(50% - 5px);
     }
   </style>
 </head>
@@ -35,8 +42,10 @@
 
 <h2>シフト登録</h2>
 <form id="shiftForm">
-  <input type="text" id="name" placeholder="名前" required>
-  <label>仕事</label>
+  <label for="name">名前</label>
+  <input type="text" id="name" placeholder="名前を入力" required>
+  
+  <label for="role">仕事</label>
   <select id="role" required>
     <option value="">選択してください</option>
     <option value="スイカわり">スイカわり</option>
@@ -47,9 +56,15 @@
     <option value="ポップコーン">ポップコーン</option>
     <option value="わたがし">わたがし</option>
   </select>
-  <label>時間</label><br>
-  <input type="time" id="start" required> ～ <input type="time" id="end" required><br>
-  <label>カードの色</label>
+  
+  <label>時間</label>
+  <div class="time-inputs">
+    <input type="time" id="start" required>
+    <span>～</span>
+    <input type="time" id="end" required>
+  </div>
+  
+  <label for="color">カードの色</label>
   <select id="color" required>
     <option value="">色を選択してください</option>
     <option value="#ff9999">🔴 あか</option>
@@ -57,17 +72,27 @@
     <option value="#ffff99">🟡 きいろ</option>
     <option value="#99ff99">🟢 みどり</option>
   </select>
-  <label>受付番号</label>
-  <input type="text" id="number" placeholder="半角数字" required>
+
+  <label for="number">受付番号</label>
+  <input type="text" id="number" placeholder="半角数字で入力" required>
+  
   <button type="submit">✅ 登録</button>
 </form>
 
 <script>
   const form = document.getElementById('shiftForm');
-  const scriptURL = "https://script.google.com/macros/s/AKfycbw2Bft0Z8Vwrt3lTEA4tcJD-sIuNmjVxJyGwx-cElWihehcJWUeQ6Ee0P1j-xtXcSob/exec";
+  // --- 修正点 ---
+  // view2.html と同じ、正しいウェブアプリのURLに更新しました。
+  const scriptURL = "https://script.google.com/macros/s/AKfycbxriEeaX7A3IZ-PUL4zE52D9aY_2df8_D_osmaBxqX4A1q8UpfL-xo4fV0hLM-nnFT4/exec";
   
   form.addEventListener('submit', function(e) {
     e.preventDefault();
+    
+    // ボタンを無効化して二重送信を防ぐ
+    const submitButton = form.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    submitButton.textContent = '登録中...';
+
     const newEntry = {
       name: form.name.value,
       role: form.role.value,
@@ -76,17 +101,33 @@
       color: form.color.value,
       number: form.number.value
     };
+
     fetch(scriptURL, {
       method: 'POST',
+      // mode: 'no-cors' は不要です。Apps Script側でCORS設定がされているためです。
+      // mode: 'cors' がデフォルトです。
       body: JSON.stringify(newEntry),
       headers: { 'Content-Type': 'application/json' }
     })
-    .then(response => {
-      alert("✅ 登録が完了しました！");
-      form.reset();
+    .then(response => response.json()) // レスポンスをJSONとして解析
+    .then(data => {
+      if(data.result === 'success') {
+        alert("✅ 登録が完了しました！");
+        form.reset();
+      } else {
+        // Apps Script側でエラーが起きた場合
+        alert("❌ 登録に失敗しました: " + data.message);
+      }
     })
     .catch(error => {
-      alert("❌ エラーが発生しました: " + error);
+      // ネットワークエラーなど、通信自体に失敗した場合
+      console.error('Error!', error.message);
+      alert("❌ エラーが発生しました。コンソールを確認してください。");
+    })
+    .finally(() => {
+        // ボタンの状態を元に戻す
+        submitButton.disabled = false;
+        submitButton.textContent = '✅ 登録';
     });
   });
 </script>
