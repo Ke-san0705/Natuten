@@ -54,7 +54,8 @@
 </div>
 
 <script>
-  const sheetURL = "https://script.google.com/macros/s/AKfycbz4L5dM2kMzd7ndnBPubDBgDEaO9WoTqkb8W2msk5tC0_VCANS3iunQlZkqIoQP6HeI/exec";
+  // ★★★ このURLは、Ke-sanさんが現在使っているデプロイのURLにしてください ★★★
+  const sheetURL = "https://script.google.com/macros/s/AKfycbyFHnrknnHy7rYpers97L0dg-RqYNY0pesz_QLUxTEfpqYmT7wzxYNNnzAApWqiZJwt/exec"; // 例です
   const shiftArea = document.getElementById("shiftArea");
   const currentNumber = document.getElementById("currentNumber");
 
@@ -74,13 +75,17 @@
         shiftArea.innerHTML = '';
         currentNumber.textContent = 'なし';
 
+        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+        // スプレッドシートのヘッダー名に合わせて、キーを修正しました！
+        // e["開始時間"] -> e.start など
+        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
         data.forEach(e => {
-          const start = e["開始時間"];
-          const end = e["終了時間"];
-          const name = e["名前"];
-          const number = e["受付番号"];
-          const color = e["色"];
-          const role = e["仕事"];
+          const start = e.start;
+          const end = e.end;
+          const name = e.name;
+          const number = e.number;
+          const color = e.color;
+          const role = e.role;
 
           if (!start || !end) return;
 

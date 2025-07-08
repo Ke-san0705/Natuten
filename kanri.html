@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <title>シフト登録・管理ページ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
+      h2, h3 { border-bottom: 2px solid #4CAF50; padding-bottom: 5px; }
+      input, select, button {
+        font-size: 16px;
+        margin-bottom: 10px;
+        width: 100%;
+        padding: 8px;
+        box-sizing: border-box;
+      }
+      button {
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      button:hover { background: #45a049; }
+      button:disabled { background: #ccc; }
+      label { display: block; margin-bottom: 5px; font-weight: bold; }
+      .time-inputs { display: flex; align-items: center; gap: 10px; }
+      .time-inputs input { width: calc(50% - 15px); }
+      #status {
+        margin-top: 15px;
+        padding: 10px;
+        border-radius: 4px;
+        display: none;
+      }
+      .success { background-color: #d4edda; color: #155724; }
+      .error { background-color: #f8d7da; color: #721c24; }
+      table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+      th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+      th { background: #eee; }
+    </style>
+  </head>
+  <body>
+    <h2>シフト登録</h2>
+    <form id="shiftForm">
+      <label for="name">名前</label>
+      <input type="text" id="name" name="name" placeholder="名前を入力" required>
+      
+      <label for="role">仕事</label>
+      <select id="role" name="role" required>
+        <option value="">選択してください</option>
+        <option value="スイカわり">スイカわり</option>
+        <option value="のみもの">のみもの</option>
+        <option value="スーパーボール">スーパーボール</option>
+        <option value="しゃてき">しゃてき</option>
+        <option value="わなげ">わなげ</option>
+        <option value="ポップコーン">ポップコーン</option>
+        <option value="わたがし">わたがし</option>
+      </select>
+      
+      <label>時間</label>
+      <div class="time-inputs">
+        <input type="time" id="start" name="start" required>
+        <span>～</span>
+        <input type="time" id="end" name="end" required>
+      </div>
+      
+      <label for="color">カードの色</label>
+      <select id="color" name="color" required>
+        <option value="">色を選択してください</option>
+        <option value="#ff9999">🔴 あか</option>
+        <option value="#99ccff">� あお</option>
+        <option value="#ffff99">🟡 きいろ</option>
+        <option value="#99ff99">🟢 みどり</option>
+      </select>
+
+      <label for="number">受付番号</label>
+      <input type="text" id="number" name="number" placeholder="半角数字で入力" required>
+      
+      <button type="submit">✅ 登録</button>
+    </form>
+    <div id="status"></div>
+
+    <h3>現在の登録状況</h3>
+    <table id="shiftTable">
+        <thead>
+            <tr>
+                <th>名前</th>
+                <th>仕事</th>
+                <th>時間</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td colspan="3">読み込み中...</td></tr>
+        </tbody>
+    </table>
+
+    <script>
+      const form = document.getElementById('shiftForm');
+      const submitButton = form.querySelector('button[type="submit"]');
+      const statusDiv = document.getElementById('status');
+      const tableBody = document.querySelector("#shiftTable tbody");
+
+      // フォーム送信時の処理
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitButton.disabled = true;
+        submitButton.textContent = '登録中...';
+        statusDiv.style.display = 'none';
+
+        // フォームのデータをオブジェクトとして取得
+        const formData = {};
+        new FormData(form).forEach((value, key) => {
+          formData[key] = value;
+        });
+
+        // Google Apps Scriptのサーバーサイド関数を呼び出す
+        google.script.run
+          .withSuccessHandler(onSuccess)
+          .withFailureHandler(onFailure)
+          .appendData(formData);
+      });
+
+      // 登録成功時のコールバック関数
+      function onSuccess(response) {
+        statusDiv.className = 'success';
+        statusDiv.textContent = '✅ 登録が完了しました！';
+        statusDiv.style.display = 'block';
+        form.reset();
+        submitButton.disabled = false;
+        submitButton.textContent = '✅ 登録';
+        loadShifts(); // テーブルを再読み込み
+      }
+
+      // 登録失敗時のコールバック関数
+      function onFailure(error) {
+        statusDiv.className = 'error';
+        statusDiv.textContent = '❌ 登録に失敗しました: ' + error.message;
+        statusDiv.style.display = 'block';
+        submitButton.disabled = false;
+        submitButton.textContent = '✅ 登録';
+      }
+
+      // ページ読み込み時にシフト一覧を読み込む
+      function loadShifts() {
+        google.script.run
+          .withSuccessHandler(displayShifts)
+          .withFailureHandler(onFailure)
+          .getShifts();
+      }
+
+      // シフト一覧をテーブルに表示する関数
+      function displayShifts(shifts) {
+        tableBody.innerHTML = '';
+        if (shifts.length === 0) {
+          tableBody.innerHTML = '<tr><td colspan="3">登録データはありません。</td></tr>';
+          return;
+        }
+        shifts.forEach(shift => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${shift.名前}</td>
+            <td>${shift.仕事}</td>
+            <td>${shift.開始時間} ～ ${shift.終了時間}</td>
+          `;
+          tableBody.appendChild(row);
+        });
+      }
+
+      // ページが読み込まれたら初回読み込みを実行
+      document.addEventListener('DOMContentLoaded', loadShifts);
+    </script>
+  </body>
+</html>
+�
