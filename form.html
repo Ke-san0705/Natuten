@@ -21,12 +21,13 @@
 <body>
 
 <h2>シフト登録</h2>
+<!-- ★★★★★ inputとselectに name属性を追加しました ★★★★★ -->
 <form id="shiftForm">
   <label for="name">名前</label>
-  <input type="text" id="name" required>
+  <input type="text" id="name" name="name" required>
   
   <label for="role">仕事</label>
-  <select id="role" required>
+  <select id="role" name="role" required>
     <option value="">選択してください</option>
     <option value="スイカわり">スイカわり</option>
     <option value="のみもの">のみもの</option>
@@ -39,13 +40,13 @@
   
   <label>時間</label>
   <div class="time-inputs">
-    <input type="time" id="start" required>
+    <input type="time" id="start" name="start" required>
     <span>～</span>
-    <input type="time" id="end" required>
+    <input type="time" id="end" name="end" required>
   </div>
   
   <label for="color">カードの色</label>
-  <select id="color" required>
+  <select id="color" name="color" required>
     <option value="">色を選択してください</option>
     <option value="#ff9999">🔴 あか</option>
     <option value="#99ccff">🔵 あお</option>
@@ -54,7 +55,7 @@
   </select>
 
   <label for="number">受付番号</label>
-  <input type="text" id="number" placeholder="半角数字で入力" required>
+  <input type="text" id="number" name="number" placeholder="半角数字で入力" required>
   
   <button type="submit">✅ 登録</button>
 </form>
@@ -66,7 +67,7 @@
   // このURLを、先ほどステップ2でコピーした「新しいデプロイURL」に
   // 必ず書き換えてください！
   // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-  const scriptURL = "https://script.google.com/macros/s/AKfycbwkO2R7IvT1GrGOdPyVOqhk-5oUhTTjYIh8V7LbD8PC0GhFCEp77_WePpj4Pu0ayzpn/exec"; 
+  const scriptURL = "https://script.google.com/macros/s/AKfycbxGA33ErbrdapzHwzeLeSw8O1cw3CcHI1oY9Ag14jblSkQx6Tvbrr-M72mxXOOMQuYX/exec"; 
 
   const statusDiv = document.getElementById('status');
 
@@ -77,19 +78,12 @@
     submitButton.textContent = '登録中...';
     statusDiv.style.display = 'none';
 
-    const newEntry = {
-      name: form.name.value,
-      role: form.role.value,
-      start: form.start.value,
-      end: form.end.value,
-      color: form.color.value,
-      number: form.number.value
-    };
+    // ★★★★★ FormDataを使ってデータを送信します。これがCORSエラーを回避する鍵です ★★★★★
+    const formData = new FormData(form);
 
     fetch(scriptURL, {
       method: 'POST',
-      body: JSON.stringify(newEntry),
-      headers: { 'Content-Type': 'application/json' }
+      body: formData
     })
     .then(response => response.json())
     .then(data => {
