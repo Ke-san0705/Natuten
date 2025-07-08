@@ -23,10 +23,10 @@
 <h2>シフト登録</h2>
 <form id="shiftForm">
   <label for="name">名前</label>
-  <input type="text" id="name" name="name" required>
+  <input type="text" id="name" required>
   
   <label for="role">仕事</label>
-  <select id="role" name="role" required>
+  <select id="role" required>
     <option value="">選択してください</option>
     <option value="スイカわり">スイカわり</option>
     <option value="のみもの">のみもの</option>
@@ -39,13 +39,13 @@
   
   <label>時間</label>
   <div class="time-inputs">
-    <input type="time" id="start" name="start" required>
+    <input type="time" id="start" required>
     <span>～</span>
-    <input type="time" id="end" name="end" required>
+    <input type="time" id="end" required>
   </div>
   
   <label for="color">カードの色</label>
-  <select id="color" name="color" required>
+  <select id="color" required>
     <option value="">色を選択してください</option>
     <option value="#ff9999">🔴 あか</option>
     <option value="#99ccff">🔵 あお</option>
@@ -54,7 +54,7 @@
   </select>
 
   <label for="number">受付番号</label>
-  <input type="text" id="number" name="number" placeholder="半角数字で入力" required>
+  <input type="text" id="number" placeholder="半角数字で入力" required>
   
   <button type="submit">✅ 登録</button>
 </form>
@@ -74,14 +74,26 @@
     submitButton.textContent = '登録中...';
     statusDiv.style.display = 'none';
 
-    // ★★★★★ FormDataを使ってデータを送信します。これがCORSエラーを回避する鍵です ★★★★★
-    const formData = new FormData(form);
+    const newEntry = {
+      name: form.name.value,
+      role: form.role.value,
+      start: form.start.value,
+      end: form.end.value,
+      color: form.color.value,
+      number: form.number.value
+    };
 
     fetch(scriptURL, {
       method: 'POST',
-      body: formData
+      body: JSON.stringify(newEntry),
+      headers: { 'Content-Type': 'application/json' }
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`サーバーからの応答が不正です: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
       if (data.result === 'success') {
         statusDiv.className = 'success';
