@@ -5,41 +5,13 @@
   <title>シフト表示</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body {
-      font-family: sans-serif;
-      background: #fffef5;
-      padding: 20px;
-    }
-    .card {
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 0 4px #ccc;
-      padding: 16px;
-      margin-bottom: 12px;
-      width: 260px;
-      border-left: 10px solid #ccc;
-    }
-    .highlight {
-      animation: blink 1s infinite;
-    }
-    @keyframes blink {
-      0% { box-shadow: 0 0 4px #f00; }
-      50% { box-shadow: 0 0 20px #f00; }
-      100% { box-shadow: 0 0 4px #f00; }
-    }
-    #timeDisplay {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      text-align: right;
-    }
-    #timeDisplay .big {
-      font-size: 48px;
-      font-weight: bold;
-    }
-    #timeDisplay .small {
-      font-size: 16px;
-    }
+    body { font-family: sans-serif; background: #fffef5; padding: 20px; }
+    .card { background: #fff; border-radius: 16px; box-shadow: 0 0 4px #ccc; padding: 16px; margin-bottom: 12px; width: 260px; border-left: 10px solid #ccc; }
+    .highlight { animation: blink 1s infinite; }
+    @keyframes blink { 0% { box-shadow: 0 0 4px #f00; } 50% { box-shadow: 0 0 20px #f00; } 100% { box-shadow: 0 0 4px #f00; } }
+    #timeDisplay { position: absolute; top: 20px; right: 20px; text-align: right; }
+    #timeDisplay .big { font-size: 48px; font-weight: bold; }
+    #timeDisplay .small { font-size: 16px; }
   </style>
 </head>
 <body>
@@ -54,8 +26,15 @@
 </div>
 
 <script>
-  // ★★★ このURLは、Ke-sanさんが現在使っているデプロイのURLにしてください ★★★
-  const sheetURL = "https://script.google.com/macros/s/AKfycbyFHnrknnHy7rYpers97L0dg-RqYNY0pesz_QLUxTEfpqYmT7wzxYNNnzAApWqiZJwt/exec"; // 例です
+  // ★★★ このURLは、次のステップで作成する「新しいデプロイURL」にしてください ★★★
+  const baseUrl = "https://script.google.com/macros/s/AKfycbxzZXr1wgL1r4-XBHdyS6i2eUczejwdT1ROj-PY-LGxkKpqLVbJlogO8xGVK1PFYckR/exec"; 
+  
+  // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+  // これが最重要ポイント！
+  // URLの末尾に「?page=view」という目印を付けて、データ取得のリクエストであることを伝える
+  // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+  const sheetURL = baseUrl + "?page=view";
+
   const shiftArea = document.getElementById("shiftArea");
   const currentNumber = document.getElementById("currentNumber");
 
@@ -71,15 +50,14 @@
     fetch(sheetURL)
       .then(res => res.json())
       .then(data => {
+        if (!Array.isArray(data)) { // エラーオブジェクトが返ってきた場合
+          throw new Error(data.message || '不明なエラー');
+        }
         const nowTime = updateClock();
         shiftArea.innerHTML = '';
         currentNumber.textContent = 'なし';
 
-        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-        // スプレッドシートのヘッダー名に合わせて、キーを修正しました！
-        // e["開始時間"] -> e.start など
-        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-        data.forEach(e => {
+        data.reverse().forEach(e => { // スクリプト側で逆順にしたので元に戻す
           const start = e.start;
           const end = e.end;
           const name = e.name;
@@ -109,14 +87,14 @@
       })
       .catch(err => {
         console.error("取得エラー", err);
-        shiftArea.innerHTML = '<p>❌ データの取得に失敗しました。</p>';
+        shiftArea.innerHTML = `<p>❌ データの取得に失敗しました: ${err.message}</p>`;
       });
   }
 
-  // 初回 + 10秒ごとに更新
   loadShifts();
   setInterval(loadShifts, 10000);
 </script>
 
 </body>
 </html>
+<!DOCTYPE html>
