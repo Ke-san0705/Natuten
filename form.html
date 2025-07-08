@@ -21,7 +21,6 @@
 <body>
 
 <h2>シフト登録</h2>
-<!-- ★★★★★ inputとselectに name属性を追加しました ★★★★★ -->
 <form id="shiftForm">
   <label for="name">名前</label>
   <input type="text" id="name" name="name" required>
@@ -63,11 +62,8 @@
 
 <script>
   const form = document.getElementById('shiftForm');
-  // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-  // このURLを、先ほどステップ2でコピーした「新しいデプロイURL」に
-  // 必ず書き換えてください！
-  // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-  const scriptURL = "https://script.google.com/macros/s/AKfycbxGA33ErbrdapzHwzeLeSw8O1cw3CcHI1oY9Ag14jblSkQx6Tvbrr-M72mxXOOMQuYX/exec"; 
+  // ★★★ このURLを、次のステップで作成する「新しいデプロイURL」に書き換えてください！ ★★★
+  const scriptURL = "https://script.google.com/macros/s/AKfycbx_6o0KOHASe3wYm3S_lVkI7rhI2fcNVG_wSjooyovlTcg8oAE0cFRECIgnBu1fmQ9k/exec"; 
 
   const statusDiv = document.getElementById('status');
 
