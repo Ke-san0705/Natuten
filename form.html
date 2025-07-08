@@ -21,12 +21,13 @@
 <body>
 
 <h2>シフト登録</h2>
+<!-- ★★★★★ inputとselectに name属性 を追加しました ★★★★★ -->
 <form id="shiftForm">
   <label for="name">名前</label>
-  <input type="text" id="name" required>
+  <input type="text" id="name" name="name" required>
   
   <label for="role">仕事</label>
-  <select id="role" required>
+  <select id="role" name="role" required>
     <option value="">選択してください</option>
     <option value="スイカわり">スイカわり</option>
     <option value="のみもの">のみもの</option>
@@ -39,13 +40,13 @@
   
   <label>時間</label>
   <div class="time-inputs">
-    <input type="time" id="start" required>
+    <input type="time" id="start" name="start" required>
     <span>～</span>
-    <input type="time" id="end" required>
+    <input type="time" id="end" name="end" required>
   </div>
   
   <label for="color">カードの色</label>
-  <select id="color" required>
+  <select id="color" name="color" required>
     <option value="">色を選択してください</option>
     <option value="#ff9999">🔴 あか</option>
     <option value="#99ccff">🔵 あお</option>
@@ -54,7 +55,7 @@
   </select>
 
   <label for="number">受付番号</label>
-  <input type="text" id="number" placeholder="半角数字で入力" required>
+  <input type="text" id="number" name="number" placeholder="半角数字で入力" required>
   
   <button type="submit">✅ 登録</button>
 </form>
@@ -63,7 +64,7 @@
 <script>
   const form = document.getElementById('shiftForm');
   // ★★★ このURLを、次のステップで作成する「新しいデプロイURL」に書き換えてください！ ★★★
-  const scriptURL = "https://script.google.com/macros/s/AKfycbwgzy8RjB9Wo37grHlaXgRKEuxUryUO62UeB2A9Q9sU_2Ayp5_oZHUX6RYFZ4HlbH2H/exec"; 
+  const scriptURL = "https://script.google.com/macros/s/AKfycbw4vWtTshNvFuQA1YbsHJkwu4ZNDWPq-NsZIR0V934kSKm0ByxM55WoiHJJ6MfIpcGI/exec"; 
 
   const statusDiv = document.getElementById('status');
 
@@ -74,23 +75,12 @@
     submitButton.textContent = '登録中...';
     statusDiv.style.display = 'none';
 
-    const entryData = {
-      name: form.name.value,
-      role: form.role.value,
-      start: form.start.value,
-      end: form.end.value,
-      color: form.color.value,
-      number: form.number.value
-    };
-
-    // ★★★★★ これがハイブリッド送信の心臓部です ★★★★★
-    const formData = new FormData();
-    // 'jsonData'という名前で、JSON文字列をFormDataの中に入れる
-    formData.append('jsonData', JSON.stringify(entryData));
+    // ★★★★★ FormDataを使ってデータを送信します。これがCORSエラーを回避する鍵です ★★★★★
+    const formData = new FormData(form);
 
     fetch(scriptURL, {
       method: 'POST',
-      body: formData // Content-Typeヘッダーは付けない
+      body: formData
     })
     .then(response => response.json())
     .then(data => {
