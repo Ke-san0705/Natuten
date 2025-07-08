@@ -6,19 +6,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { font-family: sans-serif; background: #fffef5; padding: 20px; }
-    .card { background: #fff; border-radius: 16px; box-shadow: 0 0 4px #ccc; padding: 16px; margin-bottom: 12px; width: 260px; border-left: 10px solid #ccc; }
-    .highlight { animation: blink 1s infinite; }
-    @keyframes blink { 0% { box-shadow: 0 0 4px #f00; } 50% { box-shadow: 0 0 20px #f00; } 100% { box-shadow: 0 0 4px #f00; } }
-    #timeDisplay { position: absolute; top: 20px; right: 20px; text-align: right; }
-    #timeDisplay .big { font-size: 48px; font-weight: bold; }
-    #timeDisplay .small { font-size: 16px; }
+    h2, h3 { color: #333; }
+    .card { background: #fff; border-radius: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); padding: 16px; margin-bottom: 12px; width: 280px; border-left: 10px solid #ccc; transition: transform 0.2s; }
+    .card:hover { transform: translateY(-3px); }
+    .highlight { animation: blink 1.2s infinite; }
+    @keyframes blink { 0%, 100% { box-shadow: 0 0 8px 2px #f00; } 50% { box-shadow: 0 0 20px 8px #f00; } }
+    #timeDisplay { position: fixed; top: 20px; right: 20px; text-align: right; background: rgba(255,255,255,0.8); padding: 10px; border-radius: 8px; }
+    #timeDisplay .big { font-size: 48px; font-weight: bold; color: #333; }
+    #timeDisplay .small { font-size: 16px; color: #555; }
+    .error-msg { color: red; font-weight: bold; }
+    #shiftArea { display: flex; flex-wrap: wrap; gap: 15px; }
   </style>
 </head>
 <body>
 
 <h2>📋 いまの ばんごう：<span id="currentNumber">なし</span></h2>
 <h3>📋 いまのシフト</h3>
-<div id="shiftArea"></div>
+<div id="shiftArea"><p>データを読み込んでいます...</p></div>
 
 <div id="timeDisplay">
   <div class="big" id="clock">--:--</div>
@@ -26,14 +30,11 @@
 </div>
 
 <script>
-  // ★★★ このURLは、次のステップで作成する「新しいデプロイURL」にしてください ★★★
-  const baseUrl = "https://script.google.com/macros/s/AKfycbxzZXr1wgL1r4-XBHdyS6i2eUczejwdT1ROj-PY-LGxkKpqLVbJlogO8xGVK1PFYckR/exec"; 
-  
   // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-  // これが最重要ポイント！
-  // URLの末尾に「?page=view」という目印を付けて、データ取得のリクエストであることを伝える
+  // このURLを、先ほどステップ2でコピーした「新しいデプロイURL」に
+  // 必ず書き換えてください！
   // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-  const sheetURL = baseUrl + "?page=view";
+  const sheetURL = "https://script.google.com/macros/s/AKfycbwkO2R7IvT1GrGOdPyVOqhk-5oUhTTjYIh8V7LbD8PC0GhFCEp77_WePpj4Pu0ayzpn/exec"; 
 
   const shiftArea = document.getElementById("shiftArea");
   const currentNumber = document.getElementById("currentNumber");
@@ -48,16 +49,24 @@
 
   function loadShifts() {
     fetch(sheetURL)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) { throw new Error(`サーバーエラー: ${res.status}`); }
+        return res.json();
+      })
       .then(data => {
-        if (!Array.isArray(data)) { // エラーオブジェクトが返ってきた場合
-          throw new Error(data.message || '不明なエラー');
-        }
+        if (data.result === 'error') { throw new Error(data.message); }
+        if (!Array.isArray(data)) { throw new Error('予期しないデータ形式です。'); }
+
         const nowTime = updateClock();
         shiftArea.innerHTML = '';
         currentNumber.textContent = 'なし';
 
-        data.reverse().forEach(e => { // スクリプト側で逆順にしたので元に戻す
+        if (data.length === 0) {
+          shiftArea.innerHTML = '<p>現在、登録されているシフトはありません。</p>';
+          return;
+        }
+
+        data.forEach(e => {
           const start = e.start;
           const end = e.end;
           const name = e.name;
@@ -81,13 +90,12 @@
             card.classList.add("highlight");
             currentNumber.textContent = number;
           }
-
           shiftArea.appendChild(card);
         });
       })
       .catch(err => {
-        console.error("取得エラー", err);
-        shiftArea.innerHTML = `<p>❌ データの取得に失敗しました: ${err.message}</p>`;
+        console.error("取得エラー:", err);
+        shiftArea.innerHTML = `<p class="error-msg">❌ データの取得に失敗しました。<br>(${err.message})</p>`;
       });
   }
 
@@ -97,4 +105,3 @@
 
 </body>
 </html>
-<!DOCTYPE html>

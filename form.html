@@ -5,37 +5,17 @@
   <title>シフト登録フォーム</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
-    input, select, button {
-      font-size: 18px;
-      margin-bottom: 10px;
-      width: 100%;
-      padding: 8px;
-      box-sizing: border-box;
-    }
-    button {
-      background: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #45a049;
-    }
-    label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: bold;
-    }
-    .time-inputs {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    .time-inputs input {
-        width: calc(50% - 5px);
-    }
+    body { font-family: sans-serif; padding: 20px; background: #f9f9f9; max-width: 600px; margin: auto; }
+    h2 { text-align: center; color: #333; }
+    input, select, button { font-size: 16px; margin-bottom: 15px; width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+    button { background: #4CAF50; color: white; border: none; cursor: pointer; transition: background-color 0.3s; }
+    button:hover { background: #45a049; }
+    button:disabled { background: #ccc; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+    .time-inputs { display: flex; align-items: center; gap: 10px; }
+    #status { margin-top: 15px; padding: 10px; border-radius: 4px; text-align: center; display: none; }
+    .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
   </style>
 </head>
 <body>
@@ -43,7 +23,7 @@
 <h2>シフト登録</h2>
 <form id="shiftForm">
   <label for="name">名前</label>
-  <input type="text" id="name" placeholder="名前を入力" required>
+  <input type="text" id="name" required>
   
   <label for="role">仕事</label>
   <select id="role" required>
@@ -78,20 +58,24 @@
   
   <button type="submit">✅ 登録</button>
 </form>
+<div id="status"></div>
 
 <script>
   const form = document.getElementById('shiftForm');
-  // --- 修正点 ---
-  // view2.html と同じ、正しいウェブアプリのURLに更新しました。
-  const scriptURL = "https://script.google.com/macros/s/AKfycbz4L5dM2kMzd7ndnBPubDBgDEaO9WoTqkb8W2msk5tC0_VCANS3iunQlZkqIoQP6HeI/exec";
-  
+  // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+  // このURLを、先ほどステップ2でコピーした「新しいデプロイURL」に
+  // 必ず書き換えてください！
+  // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+  const scriptURL = "https://script.google.com/macros/s/AKfycbwkO2R7IvT1GrGOdPyVOqhk-5oUhTTjYIh8V7LbD8PC0GhFCEp77_WePpj4Pu0ayzpn/exec"; 
+
+  const statusDiv = document.getElementById('status');
+
   form.addEventListener('submit', function(e) {
     e.preventDefault();
-    
-    // ボタンを無効化して二重送信を防ぐ
     const submitButton = form.querySelector('button[type="submit"]');
     submitButton.disabled = true;
     submitButton.textContent = '登録中...';
+    statusDiv.style.display = 'none';
 
     const newEntry = {
       name: form.name.value,
@@ -104,28 +88,25 @@
 
     fetch(scriptURL, {
       method: 'POST',
-      // mode: 'no-cors' は不要です。Apps Script側でCORS設定がされているためです。
-      // mode: 'cors' がデフォルトです。
       body: JSON.stringify(newEntry),
       headers: { 'Content-Type': 'application/json' }
     })
-    .then(response => response.json()) // レスポンスをJSONとして解析
+    .then(response => response.json())
     .then(data => {
-      if(data.result === 'success') {
-        alert("✅ 登録が完了しました！");
+      if (data.result === 'success') {
+        statusDiv.className = 'success';
+        statusDiv.textContent = '✅ 登録が完了しました！';
         form.reset();
       } else {
-        // Apps Script側でエラーが起きた場合
-        alert("❌ 登録に失敗しました: " + data.message);
+        throw new Error(data.message || '不明なエラーが発生しました。');
       }
     })
     .catch(error => {
-      // ネットワークエラーなど、通信自体に失敗した場合
-      console.error('Error!', error.message);
-      alert("❌ エラーが発生しました。コンソールを確認してください。");
+      statusDiv.className = 'error';
+      statusDiv.textContent = `❌ 登録に失敗しました: ${error.message}`;
     })
     .finally(() => {
-        // ボタンの状態を元に戻す
+        statusDiv.style.display = 'block';
         submitButton.disabled = false;
         submitButton.textContent = '✅ 登録';
     });
